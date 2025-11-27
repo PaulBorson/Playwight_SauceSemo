@@ -59,4 +59,39 @@ test.describe('End-to-End Tests', () => {
 
 
     });
+    test( "Remove products add to cart", async ({ page }) => {
+        //Login Page
+        const loginPage = new LoginPage(page);
+        await loginPage.navigate('https://www.saucedemo.com/');
+        await loginPage.waitForLoad();
+        await loginPage.login('standard_user', 'secret_sauce');
+        await expect(page).toHaveURL('https://www.saucedemo.com/inventory.html');
+
+        
+        //add to cart from Inventory Page
+        const inventory = new InventoryPage(page);
+        await expect(page.locator('.inventory_list')).toBeVisible();
+
+        await inventory.addProductToCart('Sauce Labs Backpack');
+        await inventory.addProductToCart('Sauce Labs Bike Light');
+
+        let cartItemCount = await inventory.getCartItemCount();
+        expect(cartItemCount).toBe(2);
+
+        await inventory.gotoCart();
+
+        const cartPage = new CartPage(page);
+        await cartPage.removeItemByProductName('Sauce Labs Backpack');
+
+        let itemCountInCart = await cartPage.getcartItemsCount();
+        expect(itemCountInCart).toBe(1);
+    });
+
+
+
+
+
+
+
+
 });

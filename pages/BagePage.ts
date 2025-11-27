@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 export class Bagepage {
   constructor(public page: Page) {}
-  async nevigate(path = '') {
+  async navigate(path = '') {
     await this.page.goto(path);
   }
 

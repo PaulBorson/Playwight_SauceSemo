@@ -1,18 +1,62 @@
 import { test, expect } from '@playwright/test';
 
-test('has title', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
+import { Bagepage } from '../pages/BagePage';
+import { LoginPage } from '../pages/LoginPage';
+import { InventoryPage } from '../pages/Inventory';
+import { CartPage } from '../pages/CartPage';
+import { CheckoutPage } from '../pages/CheckoutPage';
 
-  // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/Playwright/);
-});
+test.describe('End-to-End Tests', () => {
 
-test('get started link', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
+    test('Complete Flow E2E', async ({ page }) => {
+        //Login Page
+        const loginPage = new LoginPage(page);
+        await loginPage.navigate('https://www.saucedemo.com/');
+        await loginPage.waitForLoad();
+        await loginPage.login('standard_user', 'secret_sauce');
+        await expect(page).toHaveURL('https://www.saucedemo.com/inventory.html');
 
-  // Click the get started link.
-  await page.getByRole('link', { name: 'Get started' }).click();
 
-  // Expects page to have a heading with the name of Installation.
-  await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
+
+        //add to cart from Inventory Page
+        const inventory = new InventoryPage(page);
+        await expect(page.locator('.inventory_list')).toBeVisible();
+
+        await inventory.addProductToCart('Sauce Labs Backpack');
+        await inventory.addProductToCart('Sauce Labs Bike Light');
+
+        let cartItemCount = await inventory.getCartItemCount();
+        expect(cartItemCount).toBe(2);
+
+
+        //Go to Cart Page
+        await inventory.gotoCart();
+        const cartPage = new CartPage(page);
+        const itemCountInCart = await cartPage.getcartItemsCount();
+        expect(itemCountInCart).toBe(2);
+
+
+        //proceed to Checkout Page
+        await cartPage.proceedtoCheckout();
+
+        // fill Checkout Page
+        const checkoutPage = new CheckoutPage(page);
+        await checkoutPage.enterCheckoutInformation('John', 'Doe', '12345');
+        await checkoutPage.continueCheckout();
+
+        // Finish Checkout
+        await checkoutPage.finishCheckout();
+        
+        // Verify order completion
+        const completionMessage = await checkoutPage.getCompleteMessageHeader();
+        expect(completionMessage).toContain('Thank you for your order!');
+
+
+        await checkoutPage.backToHome();
+        await expect(page).toHaveURL('https://www.saucedemo.com/inventory.html');
+        
+
+
+
+    });
 });

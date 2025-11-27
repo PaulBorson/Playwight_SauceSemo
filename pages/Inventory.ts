@@ -18,10 +18,12 @@ export class InventoryPage extends Bagepage {
   }
 
   async addProductToCart(productName: string) {
-    const productCard = this.page.locator(`.inventory_list`, {
+    // Locate the inventory item that contains the exact product name
+    const productCard = this.page.locator('.inventory_item', {
       has: this.page.locator('.inventory_item_name', { hasText: productName }),
     });
-    await productCard.locator('[data-test^="add-to-cart"]').click();
+    // Click the add-to-cart button for that specific product
+    await productCard.locator('[data-test^="add-to-cart"]').first().click();
   }
   async addProductstoCartNumbers(index: number) {
     const addtocartbuttons = this.page.locator('[data-test^="add-to-cart"]');
